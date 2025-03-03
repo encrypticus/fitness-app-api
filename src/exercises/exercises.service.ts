@@ -15,23 +15,27 @@ export class ExercisesService {
     bodyPart: BodyPart,
     query: any,
   ): Promise<ExercisesResponse> {
-    const queryBuilder = this.exercisesRepository
-      .createQueryBuilder('exercise')
-      .where("exercise.bodyPart ->> 'en' = :bodyPart", { bodyPart });
+    try {
+      const queryBuilder = this.exercisesRepository
+        .createQueryBuilder('exercise')
+        .where("exercise.bodyPart ->> 'en' = :bodyPart", { bodyPart });
 
-    const exercisesCount = await queryBuilder.getCount();
+      const exercisesCount = await queryBuilder.getCount();
 
-    if (query.limit) {
-      queryBuilder.limit(query.limit);
+      if (query.limit) {
+        queryBuilder.limit(query.limit);
+      }
+
+      if (query.offset) {
+        queryBuilder.offset(query.offset);
+      }
+
+      const exercises = await queryBuilder.getMany();
+
+      return { exercisesCount, exercises };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
-
-    if (query.offset) {
-      queryBuilder.offset(query.offset);
-    }
-
-    const exercises = await queryBuilder.getMany();
-
-    return { exercisesCount, exercises };
   }
 
   async getExerciseById(id: number): Promise<Exercise> {
