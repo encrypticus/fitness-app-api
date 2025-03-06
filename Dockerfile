@@ -1,25 +1,20 @@
-# Используем официальный Node.js образ
-FROM node:20
-
-# Устанавливаем рабочую директорию
+# Стадия 1: Сборка приложения
+FROM node:20 AS builder
 WORKDIR /app
-
-# Копируем package.json
-COPY package.json ./
-
-# Копируем yarn.lock
-COPY yarn.lock ./
-
-# Устанавливаем зависимости
+COPY package.json yarn.lock ./
 RUN yarn
-
-# Копируем все файлы проекта
 COPY . .
+RUN yarn build
 
-# Копируем wait-for-it.sh
+# Стадия 2: Финальный образ
+FROM node:20-alpine
+RUN apk add --no-cache bash
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 COPY wait-for-it.sh /app/wait-for-it.sh
-
-# Делаем скрипт исполняемым
+COPY .env /app/.env
 RUN chmod +x /app/wait-for-it.sh
 
 # Указываем команды по умолчанию: запускаем миграции и стартуем сервер
