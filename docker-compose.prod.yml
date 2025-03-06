@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: fitness_app_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    image: badcoderspaik/fitness_app_backend:1.0
+    container_name: fitness_app_backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - postgres
+    ports:
+      - "3002:3002"
+
+volumes:
+  postgres_data:
