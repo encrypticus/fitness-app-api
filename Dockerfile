@@ -14,7 +14,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY wait-for-it.sh /app/wait-for-it.sh
-COPY .env /app/.env
 RUN chmod +x /app/wait-for-it.sh
 
 # Указываем команды по умолчанию: запускаем миграции и стартуем сервер
