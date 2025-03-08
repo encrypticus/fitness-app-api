@@ -1,0 +1,50 @@
+name: Build, Push, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Логин в Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # 3. Сборка Docker-образа
+      - name: Build Docker image
+        run: |
+          docker build -t badcoderspaik/fitness_app_backend:1.0 .
+
+      # 4. Загрузка образа на Docker Hub
+      - name: Push Docker image
+        run: |
+          docker push badcoderspaik/fitness_app_backend:1.0
+
+      # 5. Подключение к VPS через SSH
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /git_projects/fitness-app-api
+            # Остановить и удалить только контейнер backend
+            docker-compose -f docker-compose.prod.yml stop backend
+            docker-compose -f docker-compose.prod.yml rm -f backend
+            
+            # Загрузить новый образ backend
+            docker pull badcoderspaik/fitness_app_backend:1.0
+            
+            # Запустить контейнер backend
+            docker-compose -f docker-compose.prod.yml up -d backend
