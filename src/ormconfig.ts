@@ -1,8 +1,5 @@
 import { DataSource } from 'typeorm';
-import * as dotenv from 'dotenv';
 import { CreateTableExercises1736086507264 } from './lib/migrations/1736086507264-create_table_exercises';
-
-dotenv.config();
 
 export default new DataSource({
   type: 'postgres',
